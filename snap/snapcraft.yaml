@@ -1,0 +1,75 @@
+name: opencv-demos
+version: '0.1'
+summary: OpenCV demonstration
+description: |
+  This demonstrates OpenCV as snap
+
+grade: devel
+confinement: devmode
+
+apps:
+  version:
+    command: launch.wrapper usr/bin opencv_version
+    plugs: [unity7, x11, home]
+  calibration:
+    command: launch.wrapper usr/bin opencv_interactive-calibration
+    plugs: [unity7, x11, home, opengl, camera]
+  video:
+    command: usr/bin/python $SNAP/samples/python2/video.py
+    plugs: [unity7, x11, home, opengl, camera]
+  camshift:
+    command: usr/bin/python $SNAP/usr/share/OpenCV/samples/python/camshift.py
+    plugs: [unity7, x11, home, opengl, camera]
+  facedetect:
+    command: usr/bin/python $SNAP/usr/share/OpenCV/samples/python/facedetect.py --cascade $SNAP/usr/share/OpenCV/haarcascades/haarcascade_frontalface_alt.xml --nested-cascade $SNAP/usr/share/OpenCV/haarcascades/haarcascade_eye.xml 
+    plugs: [unity7, x11, home, opengl, camera]
+
+parts:
+  opencv-contrib-snap:
+    source: https://github.com/opencv/opencv_contrib.git
+    source-type: git
+    plugin: dump
+    stage:
+      - -README.md
+
+  opencv-snap:
+    source: https://github.com/opencv/opencv.git
+    source-type: git
+    source-branch: "2.4"
+    plugin: cmake
+    configflags: [-DCMAKE_INSTALL_PREFIX=/usr, -DOPENCV_EXTRA_MODULES_PATH=../../opencv-contrib-snap/src/modules, -DINSTALL_PYTHON_EXAMPLES=ON]
+    after: [opencv-contrib-snap]
+    build-packages:
+      - build-essential
+      - extra-cmake-modules
+      - pkg-config
+      - libavformat-dev
+      - libavdevice-dev
+      - libswscale-dev
+      - libgavl-dev
+      - libcairo2-dev
+      - libpython2.7
+      - libpython-stdlib
+      - libpython3.5
+      - libpython3-stdlib
+      - python-numpy
+      - python3-numpy
+    stage-packages:
+      - python
+      - libpython2.7
+      - libpython-stdlib
+      - libpython3.5
+      - libpython3-stdlib
+      - python-numpy
+      - python3-numpy
+    stage:
+      - usr/bin
+      - usr/lib
+      - usr/share/OpenCV/samples/python
+      - usr/share/OpenCV/haarcascades
+
+  wrapper:
+    plugin: dump
+    source: wrapper
+    organize:
+      launch.wrapper: bin/launch.wrapper
